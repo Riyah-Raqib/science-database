@@ -1,11 +1,10 @@
 -- Create ecology-related tables
-
 CREATE TABLE species_reference (
     species_id NUMBER PRIMARY KEY,
     species_name VARCHAR2(255) UNIQUE NOT NULL,
-    common_name VARCHAR(255),
+    common_name VARCHAR2(255),
     family VARCHAR2(255) NOT NULL,
-    order VARCHAR2(255) NOT NULL,
+    "order" VARCHAR2(255) NOT NULL,
     class VARCHAR2(255) NOT NULL,
     phylum VARCHAR2(255) NOT NULL,
     kingdom VARCHAR2(255) NOT NULL,
@@ -14,7 +13,7 @@ CREATE TABLE species_reference (
 );
 
 CREATE INDEX idx_species_family ON species_reference(family);
-CREATE INDEX idx_species_order ON species_reference(order);
+CREATE INDEX idx_species_order ON species_reference("order");
 CREATE INDEX idx_species_class ON species_reference(class);
 CREATE INDEX idx_species_phylum ON species_reference(phylum);
 CREATE INDEX idx_species_kingdom ON species_reference(kingdom);
@@ -23,7 +22,7 @@ CREATE INDEX idx_species_habitat ON species_reference(habitat);
 
 CREATE TABLE location_reference (
     location_id NUMBER PRIMARY KEY,
-    location_name VARCHAR2(255) NOT NULL,
+    location_name VARCHAR2(255) UNIQUE NOT NULL,
     habitat_type VARCHAR2(255) NOT NULL,
     region VARCHAR2(255) NOT NULL
 );
@@ -61,7 +60,6 @@ CREATE TABLE media (
 );
 
 -- Create bioinformatics-related tables
-
 CREATE TABLE source_studies (
     study_id NUMBER PRIMARY KEY,
     title VARCHAR2(255) NOT NULL,
@@ -85,7 +83,7 @@ CREATE TABLE sample_datasets (
 
 CREATE TABLE methods (
     method_id NUMBER PRIMARY KEY,
-    method_name VARCHAR2(255) UNIQUE,
+    method_name VARCHAR2(255) UNIQUE NOT NULL,
     method_description CLOB,
     method_version VARCHAR2(255),
     method_author VARCHAR2(255)
@@ -103,8 +101,9 @@ CREATE TABLE results (
     status VARCHAR2(50) DEFAULT 'Pending'
 );
 
--- Insert foreign keys as table columns
+COMMIT;
 
+-- Add foreign key constraints
 ALTER TABLE observations
     ADD CONSTRAINT fk_species_name FOREIGN KEY (species_name) REFERENCES species_reference(species_name);
 
@@ -112,22 +111,15 @@ ALTER TABLE observations
     ADD CONSTRAINT fk_location_name FOREIGN KEY (location_name) REFERENCES location_reference(location_name);
 
 ALTER TABLE field_notes
-    ADD CONSTRAINT fk_observation_id FOREIGN KEY (observation_id) REFERENCES observations(observation_id);
+    ADD CONSTRAINT fk_fn_observation_id FOREIGN KEY (observation_id) REFERENCES observations(observation_id);
 
 ALTER TABLE media
-    ADD CONSTRAINT fk_observation_id FOREIGN KEY (observation_id) REFERENCES observations(observation_id);
+    ADD CONSTRAINT fk_m_observation_id FOREIGN KEY (observation_id) REFERENCES observations(observation_id);
 
 ALTER TABLE sample_datasets
     ADD CONSTRAINT fk_doi FOREIGN KEY (doi) REFERENCES source_studies(doi);
 
 ALTER TABLE results
-    ADD CONSTRAINT method_name FOREIGN KEY (method_name) REFERENCES methods(method_name);
+    ADD CONSTRAINT fk_method_name FOREIGN KEY (method_name) REFERENCES methods(method_name);
 
--- Uncomment trigger code when required for automatic modification date updates in results
-
--- CREATE OR REPLACE TRIGGER update_modification_date
--- BEFORE UPDATE ON results
--- FOR EACH ROW
--- BEGIN
---   :NEW.modification_date := SYSDATE;
--- END;
+COMMIT;
